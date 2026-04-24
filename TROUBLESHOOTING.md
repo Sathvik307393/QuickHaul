@@ -184,3 +184,16 @@ fs-common package and cannot "speak" the NFS protocol.
     2. Search for "App Passwords."
     3. Create a 16-character password for "QuickHaul."
     4. Update secrets.yaml with this new code.
+
+---
+
+## ?? 18. Helm: "YAML parse error"
+**Problem:** Error: INSTALLATION FAILED: YAML parse error on ... could not find expected ':'.
+*   **Reason:** This happens if the image: keyword or a colon is accidentally deleted during variable injection in a template.
+*   **Solution:** Check the line number in the error message. Ensure the format is strictly: image: {{ .Values.global.images.NAME }} (with a colon and exactly one space).
+
+---
+
+## ?? 19. Helm: "Dry-run is deprecated"
+**Note:** In newer Helm versions, --dry-run shows a warning.
+*   **Fix:** Use --dry-run=client to check local syntax or --dry-run=server to check against the live cluster.
