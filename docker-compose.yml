@@ -1,0 +1,124 @@
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  location_service:
+    build: ./services/location-service
+    command: uvicorn app:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth_service:8002
+      - BOOKING_SERVICE_URL=http://booking_service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - LOCATION_SERVICE_URL=http://location_service:8001
+      - OTP_SERVICE_URL=http://otp_service:8005
+      - FRONTEND_URL=http://54.87.60.241
+    depends_on:
+      - mongodb
+      - redis
+
+  auth_service:
+    build: ./services/auth-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth_service:8002
+      - BOOKING_SERVICE_URL=http://booking_service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - LOCATION_SERVICE_URL=http://location_service:8001
+      - OTP_SERVICE_URL=http://otp_service:8005
+      - FRONTEND_URL=http://54.87.60.241
+    env_file: .env
+    depends_on:
+      - mongodb
+      - redis
+
+  booking_service:
+    build: ./services/booking-service
+    command: uvicorn app:app --host 0.0.0.0 --port 8003
+    ports:
+      - "8003:8003"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth_service:8002
+      - BOOKING_SERVICE_URL=http://booking_service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - LOCATION_SERVICE_URL=http://location_service:8001
+      - OTP_SERVICE_URL=http://otp_service:8005
+      - FRONTEND_URL=http://54.87.60.241
+    depends_on:
+      - mongodb
+      - redis
+
+  notification_service:
+    build: ./services/notification-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8004
+    ports:
+      - "8004:8004"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth_service:8002
+      - BOOKING_SERVICE_URL=http://booking_service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - LOCATION_SERVICE_URL=http://location_service:8001
+      - OTP_SERVICE_URL=http://otp_service:8005
+      - FRONTEND_URL=http://54.87.60.241
+    depends_on:
+      - mongodb
+      - redis
+
+  otp_service:
+    build: ./services/otp-service
+    command: uvicorn app:app --host 0.0.0.0 --port 8005
+    ports:
+      - "8005:8005"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - REDIS_URL=redis://redis:6379/0
+      - AUTH_SERVICE_URL=http://auth_service:8002
+      - BOOKING_SERVICE_URL=http://booking_service:8003
+      - NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - LOCATION_SERVICE_URL=http://location_service:8001
+      - OTP_SERVICE_URL=http://otp_service:8005
+      - FRONTEND_URL=http://54.87.60.241
+    depends_on:
+      - mongodb
+      - redis
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_LOCATION_SERVICE_URL=http://location_service:8001
+      - VITE_AUTH_SERVICE_URL=http://auth_service:8002
+      - VITE_BOOKING_SERVICE_URL=http://booking_service:8003
+      - VITE_NOTIFICATION_SERVICE_URL=http://notification_service:8004
+      - VITE_OTP_SERVICE_URL=http://otp_service:8005
+      - VITE_HMR_HOST=54.87.60.241
+    depends_on:
+      - location_service
+      - auth_service
+      - booking_service
+      - notification_service
+      - otp_service
+
+volumes:
+  mongodb_data:

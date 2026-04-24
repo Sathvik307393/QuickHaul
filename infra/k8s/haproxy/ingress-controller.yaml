@@ -1,0 +1,100 @@
+# HAProxy Ingress Controller Setup
+# This manifest includes the Namespace, RBAC, and the Deployment for HAProxy Ingress.
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: haproxy-ingress-serviceaccount
+  namespace: quick-haul
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: haproxy-ingress-clusterrole
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "endpoints", "nodes", "pods", "services", "namespaces", "events", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses/status"]
+    verbs: ["update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: haproxy-ingress-clusterrole-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: haproxy-ingress-clusterrole
+subjects:
+  - kind: ServiceAccount
+    name: haproxy-ingress-serviceaccount
+    namespace: quick-haul
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy-ingress
+  namespace: quick-haul
+  labels:
+    run: haproxy-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: haproxy-ingress
+  template:
+    metadata:
+      labels:
+        run: haproxy-ingress
+    spec:
+      serviceAccountName: haproxy-ingress-serviceaccount
+      containers:
+        - name: haproxy-ingress
+          image: haproxytech/kubernetes-ingress:latest
+          args:
+            - --ingress.class=haproxy
+            - --configmap=quick-haul/haproxy-config
+            - --default-backend-service=quick-haul/frontend-service
+          ports:
+            - name: http
+              containerPort: 80
+            - name: https
+              containerPort: 443
+            - name: stat
+              containerPort: 1024
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 1024
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 1024
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy-ingress
+  namespace: quick-haul
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+    - name: https
+      port: 443
+      targetPort: 443
+      nodePort: 30443
+  selector:
+    run: haproxy-ingress

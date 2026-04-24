@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otp-service
+  namespace: quick-haul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otp-service
+  template:
+    metadata:
+      labels:
+        app: otp-service
+    spec:
+      containers:
+      - name: otp-service
+        image: quickhaul/
+        command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8005"]
+        ports:
+        - containerPort: 8005
+        envFrom:
+        - configMapRef:
+            name: quick-haul-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otp-service
+  namespace: quick-haul
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8005
+    targetPort: 8005
+  selector:
+    app: otp-service

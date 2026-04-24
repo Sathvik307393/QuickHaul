@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking-service
+  namespace: quick-haul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: booking-service
+  template:
+    metadata:
+      labels:
+        app: booking-service
+    spec:
+      containers:
+      - name: booking-service
+        image: quickhaul/
+        command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8003"]
+        ports:
+        - containerPort: 8003
+        envFrom:
+        - configMapRef:
+            name: quick-haul-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking-service
+  namespace: quick-haul
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8003
+    targetPort: 8003
+  selector:
+    app: booking-service

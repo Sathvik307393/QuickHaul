@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment Variables
+.env
+.env.*
+*.env
+
+# Frontend Dependencies and Build
+**/node_modules/
+**/dist/
+**/build/
+frontend/node_modules/
+frontend/dist/
+
+# Backend Dependencies and Artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+backend/.venv/
+venv/
+.venv/
+
+# Logs
+*.log
+backend/security_debug.log
+
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

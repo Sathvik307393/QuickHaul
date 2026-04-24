@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-service
+  namespace: quick-haul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-service
+  template:
+    metadata:
+      labels:
+        app: location-service
+    spec:
+      containers:
+      - name: location-service
+        image: quickhaul/
+        command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
+        ports:
+        - containerPort: 8001
+        envFrom:
+        - configMapRef:
+            name: quick-haul-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-service
+  namespace: quick-haul
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8001
+    targetPort: 8001
+  selector:
+    app: location-service
