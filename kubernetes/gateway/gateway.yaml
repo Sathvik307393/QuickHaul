@@ -41,6 +41,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/auth
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefix: /auth
     backendRefs:
     - name: auth-service
       port: 8002
@@ -58,6 +64,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/bookings
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefix: /
     backendRefs:
     - name: booking-service
       port: 8003
@@ -75,6 +87,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/locations
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefix: /
     backendRefs:
     - name: location-service
       port: 8001
@@ -92,6 +110,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/notifications
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefix: /
     backendRefs:
     - name: notification-service
       port: 8004
@@ -109,6 +133,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/otp
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefix: /
     backendRefs:
     - name: otp-service
       port: 8005

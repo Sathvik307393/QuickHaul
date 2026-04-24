@@ -148,3 +148,10 @@ amespace: envoy-gateway-system in your NodePort service manifest).
 **Problem:** Frontend (Nginx) returns 405 on POST requests to /api/....
 *   **Reason:** The HTTPRoute paths in your Gateway do not match the paths your React app is calling. The request falls through to the static frontend server.
 *   **Solution:** Update HTTPRoute to include the correct prefix (e.g., /api/auth instead of /auth).
+
+---
+
+## ?? 14. Backend: "404 Not Found" (Path Rewrite)
+**Problem:** API requests return 404 despite hitting the correct service.
+*   **Reason:** The backend service doesn't expect the /api prefix. The Gateway is passing the full URL instead of stripping it.
+*   **Solution:** Add a URLRewrite filter to the HTTPRoute to strip or replace the prefix (e.g., replace /api/auth with /auth).
