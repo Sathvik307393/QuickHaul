@@ -80,6 +80,35 @@ This guide provides solutions to common issues you might encounter during the Ku
 
 ---
 
+## 🚧 6. Nginx: "host not found in upstream" (Frontend)
+**Problem:** Frontend pod crashes with Exit Code 1. Logs show `[emerg] host not found in upstream "auth_service"`.
+*   **Reason:** The Nginx configuration inside the container is trying to proxy to services using hardcoded names (with underscores) that don't exist in K8s.
+*   **Solution:** 
+    1. Simplify `nginx.conf` to ONLY serve static files. 
+    2. Let the **Envoy Gateway** handle the proxying to `/auth`, `/booking`, etc.
+    3. Rebuild the frontend image as `v3`.
+
+---
+
+## 🔗 7. PV: "already bound to a different claim"
+**Problem:** MongoDB pod stays in `Pending` with `FailedBinding` warning.
+*   **Reason:** The PersistentVolume was created with a `Retain` policy and is still "remembering" an old PVC from a previous deployment.
+*   **Solution:**
+    ```bash
+    kubectl delete pv mongodb-nfs-pv
+    kubectl apply -f kubernetes/database/nfs-pv.yaml
+    ```
+
+---
+
+## 🐍 8. Uvicorn: "Could not import module main"
+**Problem:** Python services crash with `Error loading ASGI app`.
+*   **Reason:** The startup command cannot find the `main.py` file because of the folder structure.
+*   **Solution:** Use the full module path in the deployment command:
+    `command: ["uvicorn", "services.auth_service.main:app", ...]`
+
+---
+
 ## 🛠️ Useful Commands
 *   **Get everything**: `kubectl get all -n quick-haul`
 *   **Describe a failing pod**: `kubectl describe pod <pod-name> -n quick-haul`

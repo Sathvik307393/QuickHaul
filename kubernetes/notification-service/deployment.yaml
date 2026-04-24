@@ -4,7 +4,7 @@ metadata:
   name: notification-service
   namespace: quick-haul
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: notification-service
@@ -17,7 +17,14 @@ spec:
       - name: notification-service
         image: sathvik2003/quickhaul-notification:v2
         command: ["uvicorn", "services.notification_service.app:app", "--host", "0.0.0.0", "--port", "8004"]
-        ports:
+                resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        
         - containerPort: 8004
         envFrom:
         - configMapRef:
@@ -32,8 +39,16 @@ metadata:
   namespace: quick-haul
 spec:
   type: ClusterIP
-  ports:
+          resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+        
   - port: 8004
     targetPort: 8004
   selector:
     app: notification-service
+
