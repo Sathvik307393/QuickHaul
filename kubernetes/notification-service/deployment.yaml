@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: sathvik2003/quickhaul-notification:v2`n
+        image: sathvik2003/quickhaul-notification:v2
         ports:
         - containerPort: 8004
         envFrom:
@@ -36,6 +36,7 @@ spec:
     targetPort: 8004
   selector:
     app: notification-service
+
 
 
 

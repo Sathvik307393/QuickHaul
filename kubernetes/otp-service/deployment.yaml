@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: otp-service
-        image: sathvik2003/quickhaul-otp:v2`n
+        image: sathvik2003/quickhaul-otp:v2
         ports:
         - containerPort: 8005
         envFrom:
@@ -36,6 +36,7 @@ spec:
     targetPort: 8005
   selector:
     app: otp-service
+
 
 
 

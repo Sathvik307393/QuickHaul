@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: location-service
-        image: sathvik2003/quickhaul-location:v2`n
+        image: sathvik2003/quickhaul-location:v2
         ports:
         - containerPort: 8001
         envFrom:
@@ -36,6 +36,7 @@ spec:
     targetPort: 8001
   selector:
     app: location-service
+
 
 
 
