@@ -22,6 +22,8 @@ spec:
         envFrom:
         - configMapRef:
             name: quick-haul-config
+        - secretRef:
+            name: quick-haul-secrets
 ---
 apiVersion: v1
 kind: Service
@@ -35,3 +37,4 @@ spec:
     targetPort: 8002
   selector:
     app: auth-service
+
