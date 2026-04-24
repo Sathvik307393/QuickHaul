@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: otp-service
-        image: sathvik2003/quickhaul-otp:v1
+        image: sathvik2003/quickhaul-otp:v1`n        command: ["uvicorn", "services.otp_service.app:app", "--host", "0.0.0.0", "--port", "8005"]
         ports:
         - containerPort: 8005
         envFrom:
