@@ -16,15 +16,15 @@ spec:
       containers:
       - name: location-service
         image: sathvik2003/quickhaul-location:v2
-        command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "8001"]
-                resources:
+        command: ["uvicorn", "services.location_service.app:app", "–-host", "0.0.0.0", "–-port", "8001"]
+        resources:
           requests:
             cpu: "100m"
             memory: "128Mi"
           limits:
             cpu: "200m"
             memory: "256Mi"
-        
+        ports:
         - containerPort: 8001
         envFrom:
         - configMapRef:
@@ -39,16 +39,8 @@ metadata:
   namespace: quick-haul
 spec:
   type: ClusterIP
-          resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
-        
+  ports:
   - port: 8001
     targetPort: 8001
   selector:
     app: location-service
-

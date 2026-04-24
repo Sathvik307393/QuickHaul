@@ -16,15 +16,15 @@ spec:
       containers:
       - name: otp-service
         image: sathvik2003/quickhaul-otp:v2
-        command: ["uvicorn", "services.otp_service.app:app", "--host", "0.0.0.0", "--port", "8005"]
-                resources:
+        command: ["uvicorn", "services.otp_service.app:app", "–-host", "0.0.0.0", "–-port", "8005"]
+        resources:
           requests:
             cpu: "100m"
             memory: "128Mi"
           limits:
             cpu: "200m"
             memory: "256Mi"
-        
+        ports:
         - containerPort: 8005
         envFrom:
         - configMapRef:
@@ -39,16 +39,8 @@ metadata:
   namespace: quick-haul
 spec:
   type: ClusterIP
-          resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
-        
+  ports:
   - port: 8005
     targetPort: 8005
   selector:
     app: otp-service
-
