@@ -197,3 +197,16 @@ fs-common package and cannot "speak" the NFS protocol.
 ## ?? 19. Helm: "Dry-run is deprecated"
 **Note:** In newer Helm versions, --dry-run shows a warning.
 *   **Fix:** Use --dry-run=client to check local syntax or --dry-run=server to check against the live cluster.
+
+---
+
+## ?? 20. Helm: "Ownership Conflict / Already Exists"
+**Problem:** Error: INSTALLATION FAILED: ... exists and cannot be imported into the current release.
+*   **Reason:** Helm refuses to overwrite resources created manually (via kubectl apply) because they lack the pp.kubernetes.io/managed-by: Helm labels.
+*   **Solution:** Delete the manual resources first:
+    `ash
+    kubectl delete -f kubernetes/
+    kubectl delete pvc --all -n quick-haul
+    kubectl delete pv mongodb-nfs-pv
+    `
+    Then run helm install again.
