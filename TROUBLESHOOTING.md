@@ -141,3 +141,10 @@ amespace: envoy-gateway-system in your NodePort service manifest).
 **Problem:** Connection Refused on port 80 inside the pod.
 *   **Reason:** By default, the Envoy Proxy container created by Envoy Gateway listens on port 10080 for HTTP traffic, not port 80.
 *   **Solution:** Update your Service manifest to use 	argetPort: 10080.
+
+---
+
+## ?? 13. API: "405 Method Not Allowed"
+**Problem:** Frontend (Nginx) returns 405 on POST requests to /api/....
+*   **Reason:** The HTTPRoute paths in your Gateway do not match the paths your React app is calling. The request falls through to the static frontend server.
+*   **Solution:** Update HTTPRoute to include the correct prefix (e.g., /api/auth instead of /auth).

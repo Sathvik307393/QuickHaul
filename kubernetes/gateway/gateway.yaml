@@ -40,7 +40,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /auth
+        value: /api/auth
     backendRefs:
     - name: auth-service
       port: 8002
@@ -57,10 +57,27 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /booking
+        value: /api/bookings
     backendRefs:
     - name: booking-service
       port: 8003
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: location-route
+  namespace: quick-haul
+spec:
+  parentRefs:
+  - name: quickhaul-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/locations
+    backendRefs:
+    - name: location-service
+      port: 8001
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -74,10 +91,27 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /notify
+        value: /api/notifications
     backendRefs:
     - name: notification-service
       port: 8004
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: otp-route
+  namespace: quick-haul
+spec:
+  parentRefs:
+  - name: quickhaul-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/otp
+    backendRefs:
+    - name: otp-service
+      port: 8005
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -95,4 +129,3 @@ spec:
     backendRefs:
     - name: frontend
       port: 80
-
