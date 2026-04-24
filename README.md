@@ -1,159 +1,109 @@
-# Transport Booking & Logistics - Phase 1
+# ⚓ QuickHaul Kubernetes Microservices
 
-## Architecture (modular, microservice-ready)
-- **Frontend (`frontend/`)**: React + Axios client for auth, booking creation, and history views.
-- **Backend (`backend/`)**: FastAPI async monolith organized by layers (`routes`, `services`, `models`, `schemas`, `db`, `utils`) so each bounded context can later become an independent microservice.
-- **MongoDB**: Source of truth for users, bookings, drivers, and pricing rules.
-- **Redis**: Caches pricing calculations (`price:*` keys with TTL) and can be extended for queue-based background workers.
-- **JWT Auth**: Stateless bearer token auth for all protected business APIs.
-- **SMTP Notifications**: Async email notifications for booking creation and status changes (configurable via env).
+Professional, scalable Kubernetes deployment for the QuickHaul transport platform. This project uses a modern microservices architecture with Gateway API (Envoy), StatefulSets for databases, and HAProxy for external load balancing.
 
-## Project Structure
+---
+
+## 🏗️ Architecture Overview
+
+1.  **HAProxy (EC2)**: External entry point. Routes traffic to K8s nodes on NodePort `30080`.
+2.  **Envoy Gateway (K8s)**: Handles internal path-based routing (`/auth`, `/booking`, etc.).
+3.  **Microservices**: Frontend and multiple Backend services (FastAPI) running as independent Pods.
+4.  **Database**: MongoDB running as a **StatefulSet** using **NFS Persistent Storage**.
+
+---
+
+## 📁 Project Structure
 ```text
-transport/
-├── backend/
-│   ├── main.py
-│   ├── app/
-│   │   ├── core/
-│   │   │   ├── config.py
-│   │   │   └── security.py
-│   │   ├── db/
-│   │   │   ├── mongodb.py
-│   │   │   └── redis_client.py
-│   │   ├── models/
-│   │   │   └── enums.py
-│   │   ├── routes/
-│   │   │   ├── auth.py
-│   │   │   ├── booking.py
-│   │   │   ├── drivers.py
-│   │   │   └── pricing.py
-│   │   ├── schemas/
-│   │   │   ├── auth.py
-│   │   │   ├── booking.py
-│   │   │   ├── driver.py
-│   │   │   └── pricing.py
-│   │   ├── services/
-│   │   │   ├── auth_service.py
-│   │   │   ├── booking_service.py
-│   │   │   ├── driver_service.py
-│   │   │   ├── notification_service.py
-│   │   │   └── pricing_service.py
-│   │   ├── utils/
-│   │   │   ├── deps.py
-│   │   │   ├── mappers.py
-│   │   │   └── seed_data.py
-│   │   └── main.py
-│   ├── docs/
-│   │   └── sample_documents.md
-│   ├── .env.example
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── api/client.js
-│   │   ├── components/NavBar.jsx
-│   │   ├── context/AuthContext.jsx
-│   │   ├── pages/
-│   │   │   ├── BookingPage.jsx
-│   │   │   ├── HistoryPage.jsx
-│   │   │   └── LoginRegisterPage.jsx
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── styles.css
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
+/kubernetes
+  ├── auth-service/         # Auth Deployment & Service
+  ├── booking-service/      # Booking Deployment & Service
+  ├── location-service/     # Location Deployment & Service
+  ├── notification-service/ # Notification Deployment & Service
+  ├── otp-service/          # OTP Deployment & Service
+  ├── frontend/             # React Frontend Deployment & Service
+  ├── database/             # MongoDB StatefulSet, Redis, & NFS PV/PVC
+  ├── gateway/              # Envoy Gateway & HTTPRoutes
+  ├── namespace.yaml        # 'quick-haul' namespace
+  ├── configmap.yaml        # Global Env variables
+  └── secrets.yaml          # Sensitive credentials (JWT, SMTP)
+/haproxy
+  └── haproxy.cfg           # External Load Balancer config
 ```
 
-## Backend APIs
-### Auth
-- `POST /auth/register`
-- `POST /auth/login`
+---
 
-### Booking
-- `POST /booking`
-- `GET /booking/{id}`
-- `GET /booking/user/{user_id}`
-- `PATCH /booking/{id}/status?status=IN_TRANSIT|COMPLETED` (status progression support)
+## 🛠️ Step 1: Infrastructure Prerequisites
 
-### Drivers
-- `GET /drivers`
-- `POST /drivers`
-
-### Pricing
-- `GET /pricing/calculate?distance_km=10&weight_kg=20&transport_type=van`
-
-> All non-auth routes require `Authorization: Bearer <JWT_TOKEN>`.
-> Booking emails are sent when SMTP is enabled.
-
-## Example API Requests (curl)
+### 1. Setup NFS Storage (on a Worker Node)
+Run these on the selected node:
 ```bash
-# Register
-curl -X POST http://127.0.0.1:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Test User\",\"email\":\"test@example.com\",\"password\":\"secret123\"}"
-
-# Login
-curl -X POST http://127.0.0.1:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"test@example.com\",\"password\":\"secret123\"}"
-
-# Create driver
-curl -X POST http://127.0.0.1:8000/drivers \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Ravi\",\"phone\":\"9999988888\",\"vehicle_type\":\"van\"}"
-
-# Calculate pricing
-curl "http://127.0.0.1:8000/pricing/calculate?distance_km=25&weight_kg=120&transport_type=van" \
-  -H "Authorization: Bearer <TOKEN>"
-
-# Create booking
-curl -X POST http://127.0.0.1:8000/booking \
-  -H "Authorization: Bearer <TOKEN>" \
-  -H "Content-Type: application/json" \
-  -d "{\"from_location\":\"Delhi\",\"to_location\":\"Noida\",\"transport_type\":\"van\",\"goods_type\":\"furniture\",\"distance_km\":25,\"weight_kg\":120}"
-
-# Get user booking history
-curl http://127.0.0.1:8000/booking/user/<USER_ID> \
-  -H "Authorization: Bearer <TOKEN>"
+sudo apt update && sudo apt install nfs-kernel-server -y
+sudo mkdir -p /mnt/nfs/mongodb
+sudo chown nobody:nogroup /mnt/nfs/mongodb
+sudo chmod 777 /mnt/nfs/mongodb
+echo "/mnt/nfs/mongodb *(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports
+sudo exportfs -a && sudo systemctl restart nfs-kernel-server
 ```
+**Note:** Ensure all other nodes have `nfs-common` installed: `sudo apt install nfs-common -y`.
 
-## Run Locally (No Docker)
-### 1) Start MongoDB and Redis
-- Ensure MongoDB is running at `mongodb://localhost:27017`
-- Ensure Redis is running at `redis://localhost:6379`
-
-### 2) Run backend
+### 2. Install Envoy Gateway Controller
+Run this on your Master node:
 ```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn main:app --reload
+kubectl apply -f https://github.com/envoyproxy/gateway-api/releases/latest/download/install.yaml
 ```
 
-Alternative (same result):
+---
+
+## 🚀 Step 2: Deployment Sequence
+
+Follow this order to ensure all dependencies are met:
+
 ```bash
-cd backend
-python main.py
+# 1. Create Namespace
+kubectl apply -f kubernetes/namespace.yaml
+
+# 2. Apply Config & Secrets
+kubectl apply -f kubernetes/configmap.yaml
+kubectl apply -f kubernetes/secrets.yaml
+
+# 3. Setup Storage (Update IP in nfs-pv.yaml first!)
+kubectl apply -f kubernetes/database/nfs-pv.yaml
+
+# 4. Deploy Databases
+kubectl apply -f kubernetes/database/mongodb.yaml
+kubectl apply -f kubernetes/database/redis.yaml
+
+# 5. Deploy Gateway & Application
+kubectl apply -f kubernetes/gateway/gateway.yaml
+kubectl apply -R -f kubernetes/
 ```
 
-Backend available at `http://127.0.0.1:8000`, docs at `http://127.0.0.1:8000/docs`.
-To enable emails, update SMTP variables in `backend/.env` and set `SMTP_ENABLED=true`.
+---
 
-### 3) Run frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## 🔐 Step 3: Security (SealedSecrets)
 
-Frontend available at `http://127.0.0.1:5173`.
+To encrypt your `secrets.yaml` for safe Git storage:
+1.  **Install kubeseal**:
+    ```bash
+    wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.24.4/kubeseal-0.24.4-linux-amd64.tar.gz
+    sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+    ```
+2.  **Seal the Secret**:
+    ```bash
+    kubeseal --format=yaml < kubernetes/secrets.yaml > kubernetes/sealed-secrets.yaml
+    rm kubernetes/secrets.yaml # Safe to delete plain secret now
+    ```
 
-## Troubleshooting
-- If you see `No module named 'app'`, you are likely running from `backend/app` by mistake.
-- Always start backend from `backend/`.
-- If you see Redis connection errors, ensure Redis is running on `localhost:6379` (or update `REDIS_URL` in `backend/.env`).
-- Full issue history and fixes: `docs/issues-log.md`.
+---
+
+## 📡 Step 4: External Access (HAProxy)
+
+1.  Copy `haproxy/haproxy.cfg` to your EC2 `/etc/haproxy/haproxy.cfg`.
+2.  Update the `server` lines with your **Worker Node Private IPs**.
+3.  Restart HAProxy: `sudo systemctl restart haproxy`.
+
+---
+
+## 🔍 Troubleshooting
+Refer to [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for detailed solutions to common errors.
