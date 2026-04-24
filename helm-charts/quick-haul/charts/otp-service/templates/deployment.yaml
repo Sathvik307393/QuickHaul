@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: otp-service
-        {{ .Values.global.images.otp }}otp:v2
+        image: {{ .Values.global.images.otp }}
         command: ["uvicorn", "services.otp_service.app:app", "--host", "0.0.0.0", "--port", "8005"]
         resources:
           requests:
@@ -44,4 +44,5 @@ spec:
     targetPort: 8005
   selector:
     app: otp-service
+
 
