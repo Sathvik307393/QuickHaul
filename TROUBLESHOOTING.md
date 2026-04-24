@@ -155,3 +155,32 @@ amespace: envoy-gateway-system in your NodePort service manifest).
 **Problem:** API requests return 404 despite hitting the correct service.
 *   **Reason:** The backend service doesn't expect the /api prefix. The Gateway is passing the full URL instead of stripping it.
 *   **Solution:** Add a URLRewrite filter to the HTTPRoute to strip or replace the prefix (e.g., replace /api/auth with /auth).
+
+---
+
+## ?? 15. NFS Mount: "exit status 32"
+**Problem:** Pods stuck in ContainerCreating with error mount failed: exit status 32.
+*   **Reason:** The Worker Node is missing the 
+fs-common package and cannot "speak" the NFS protocol.
+*   **Solution:** Run sudo apt-get update && sudo apt-get install -y nfs-common on ALL worker nodes.
+
+---
+
+## ?? 16. Database: "RuntimeError: MongoDB is not connected"
+**Problem:** The app says DB is disconnected even though the MongoDB pod is Running.
+*   **Reason:** The app tried to connect during startup while the DB was still booting/failing and didn't retry.
+*   **Solution:** Restart the application pods to force a fresh connection:
+    `ash
+    kubectl rollout restart deployment -n quick-haul [service-name]
+    `
+
+---
+
+## ?? 17. SMTP: "Bad Credentials" (Gmail)
+**Problem:** Error (535, b'5.7.8 Username and Password not accepted').
+*   **Reason:** Google blocks regular account passwords for automated apps.
+*   **Solution:**
+    1. Enable 2-Step Verification in Google Account.
+    2. Search for "App Passwords."
+    3. Create a 16-character password for "QuickHaul."
+    4. Update secrets.yaml with this new code.
