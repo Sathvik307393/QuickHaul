@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: quickhaul/
+        image: sathvik2003/quickhaul-auth:v1
         command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]
         ports:
         - containerPort: 8002
@@ -37,4 +37,5 @@ spec:
     targetPort: 8002
   selector:
     app: auth-service
+
 

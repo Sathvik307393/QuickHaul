@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: booking-service
-        image: quickhaul/
+        image: sathvik2003/quickhaul-booking:v1
         command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8003"]
         ports:
         - containerPort: 8003
@@ -37,4 +37,5 @@ spec:
     targetPort: 8003
   selector:
     app: booking-service
+
 

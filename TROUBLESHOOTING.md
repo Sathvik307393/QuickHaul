@@ -1,63 +1,86 @@
-# Troubleshooting & Bug Fix Log: QuickHaul Microservices
+# 🛠️ QuickHaul Troubleshooting Guide
 
-This document tracks all the technical challenges encountered and resolved during the deployment of the QuickHaul project on AWS EC2.
-
-## 🔍 Common Docker Troubleshooting
-
-### 1. Stale Configuration (The most common issue)
-**Symptoms**: Changes to `nginx.conf` or `Dockerfile` are not appearing in the running container.
-**Reason**: Docker caches images and doesn't always rebuild them if only internal files have changed.
-**Solution**: Force a rebuild of the specific service:
-```bash
-docker compose up --build -d <service_name>
-```
-
-### 2. Port Conflicts
-**Symptoms**: "Address already in use" error when starting containers.
-**Reason**: A standalone container (running outside of Docker Compose) or another process is already using the port (e.g., 80, 8001, 27017).
-**Solution**: Find and stop the conflicting container:
-```bash
-docker ps  # Find the name
-docker rm -f <container_name>
-```
-
-### 3. Outdated Docker Compose (KeyError: 'ContainerConfig')
-**Symptoms**: `KeyError: 'ContainerConfig'` traceback when running `docker-compose up`.
-**Reason**: You are using the old Python-based `docker-compose` (v1.x) which is incompatible with some newer Docker features.
-**Solution**: Use the modern Go-based plugin (v2.x) by removing the hyphen:
-```bash
-docker compose up -d
-```
-
-### 4. Missing Booking Emails (Priority Debugging)
-**Symptoms**: OTP email is received, but the Booking confirmation email is missing.
-**Reason**: Likely a timeout or SMTP rejection due to the larger HTML body of the booking email.
-**Solution**: Check the Notification Service logs to see the SMTP response:
-```bash
-docker logs dockerised_quick_haul_notification_service_1
-```
-Look for: `Email send result for user@example.com: {'success': False, 'error': '...'}`.
+This guide provides solutions to common issues you might encounter during the Kubernetes deployment on your EC2 instance.
 
 ---
 
-## 🐞 Bug Fix Log
+## 1. 🖼️ ImagePullBackOff / ErrImagePull
+**Problem:** Kubernetes is unable to pull the Docker image from the registry.
+*   **Reason:** Either the image name/tag is wrong, or the repository is private and Kubernetes doesn't have the `imagePullSecret`.
+*   **Solution:**
+    1.  Verify image tags in `kubernetes/<service>/deployment.yaml` match exactly what you pushed:
+        ```bash
+        docker images # On your local build machine
+        ```
+    2.  If the repo is private, log in and create a secret:
+        ```bash
+        kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=<user> --docker-password=<token> --docker-email=<email> -n quick-haul
+        ```
+        Then add `imagePullSecrets: [{name: regcred}]` to your deployment.
 
-### [Bug #001] 404 Not Found on Auth API
-- **Symptoms**: Browser console showed `404 Not Found` for `/api/auth/login`.
-- **Root Cause**: The Auth Service FastAPI app uses a prefix (`/auth`). The Nginx proxy was forwarding requests to the root (`/`) instead of the prefixed path.
-- **Resolution**: Updated `frontend/nginx.conf` to map `/api/auth/` to `http://auth_service:8002/auth/`.
+---
 
-### [Bug #002] Emails not sending (Simulation Mode)
-- **Symptoms**: System reports "Email sent" but nothing arrives in the inbox.
-- **Root Cause**: `SMTP_ENABLED` was set to `False` by default in the code.
-- **Resolution**: Created a root `.env` file and set `SMTP_ENABLED=True` along with real SMTP credentials.
+## 2. 🔄 CrashLoopBackOff
+**Problem:** The container starts but immediately crashes.
+*   **Reason:** Usually a missing environment variable, incorrect database URL, or a port conflict.
+*   **Solution:**
+    1.  Check the logs:
+        ```bash
+        kubectl logs <pod-name> -n quick-haul
+        ```
+    2.  Verify the `ConfigMap` and `Secrets` are applied:
+        ```bash
+        kubectl get configmap quick-haul-config -n quick-haul -o yaml
+        kubectl get secret quick-haul-secrets -n quick-haul -o yaml
+        ```
 
-### [Bug #003] Environment Variables not reaching Backend
-- **Symptoms**: Backend was still using `localhost` even though Docker Compose was running.
-- **Root Cause**: The services weren't explicitly told to look for the root `.env` file.
-- **Resolution**: Updated `docker-compose.yml` to include `env_file: .env` for each microservice.
+---
 
-### [Bug #004] 500 Error: ObjectId is not JSON serializable
-- **Symptoms**: `POST /bookings` returns 500. Logs show `TypeError: Object of type ObjectId is not JSON serializable`.
-- **Root Cause**: MongoDB adds an `_id` field of type `ObjectId` to the dictionary. The `json` library cannot serialize this type when saving to Redis.
-- **Resolution**: Converted the `_id` field to a string using `str(booking_data["_id"])` before calling `json.dumps`.
+## 3. 🌐 HAProxy 503 Service Unavailable
+**Problem:** Accessing the EC2 IP returns a 503 error.
+*   **Reason:** HAProxy cannot reach the Kubernetes NodePort or the Gateway is not running.
+*   **Solution:**
+    1.  Verify the Gateway is running and has the correct NodePort:
+        ```bash
+        kubectl get svc -n quick-haul
+        ```
+    2.  Check if you can reach the NodePort directly from the EC2:
+        ```bash
+        curl http://localhost:30080
+        ```
+    3.  Verify the Worker Node IPs in `/etc/haproxy/haproxy.cfg` are correct.
+
+---
+
+## 4. 🗄️ Database Not Persistent
+**Problem:** Data is lost after a MongoDB pod restart.
+*   **Reason:** The StatefulSet is not correctly using the PersistentVolumeClaim.
+*   **Solution:**
+    1.  Check the PVC status:
+        ```bash
+        kubectl get pvc -n quick-haul
+        ```
+    2.  Ensure your cluster has a **StorageClass** (usually named `gp2` or `standard`):
+        ```bash
+        kubectl get storageclass
+        ```
+
+---
+
+## 5. 📧 Email / OTP Not Sending
+**Problem:** Registration fails or OTPs are not received.
+*   **Reason:** Incorrect SMTP credentials or the Notification service is not reachable.
+*   **Solution:**
+    1.  Check `notification-service` logs:
+        ```bash
+        kubectl logs -l app=notification-service -n quick-haul
+        ```
+    2.  Verify your Gmail App Password in `secrets.yaml` is correct (and has no spaces).
+    3.  Ensure `SMTP_ENABLED` is set to `"true"` in `configmap.yaml`.
+
+---
+
+## 🛠️ Useful Commands
+*   **Get everything**: `kubectl get all -n quick-haul`
+*   **Describe a failing pod**: `kubectl describe pod <pod-name> -n quick-haul`
+*   **Execute into a pod**: `kubectl exec -it <pod-name> -n quick-haul -- /bin/bash`

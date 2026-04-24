@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: quickhaul/
+        image: sathvik2003/quickhaul-notification:v1
         command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
         ports:
         - containerPort: 8004
@@ -37,4 +37,5 @@ spec:
     targetPort: 8004
   selector:
     app: notification-service
+
 
