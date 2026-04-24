@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service
-  namespace: quick-haul
+  name: auth--service
+  namespace: quick--haul
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: auth-service
+      app: auth--service
   template:
     metadata:
       labels:
-        app: auth-service
+        app: auth--service
     spec:
       containers:
-      - name: auth-service
-        image: sathvik2003/quickhaul-auth:v2
-        command: ["uvicorn", "services.auth_service.main:app", "–-host", "0.0.0.0", "–-port", "8002"]
+      -- name: auth--service
+        image: sathvik2003/quickhaul--auth:v2
+        command: ["uvicorn", "services.auth_service.main:app", "---host", "0.0.0.0", "---port", "8002"]
         resources:
           requests:
             cpu: "100m"
@@ -25,22 +25,23 @@ spec:
             cpu: "200m"
             memory: "256Mi"
         ports:
-        - containerPort: 8002
+        -- containerPort: 8002
         envFrom:
-        - configMapRef:
-            name: quick-haul-config
-        - secretRef:
-            name: quick-haul-secrets
----
+        -- configMapRef:
+            name: quick--haul--config
+        -- secretRef:
+            name: quick--haul--secrets
+------
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-service
-  namespace: quick-haul
+  name: auth--service
+  namespace: quick--haul
 spec:
   type: ClusterIP
   ports:
-  - port: 8002
+  -- port: 8002
     targetPort: 8002
   selector:
-    app: auth-service
+    app: auth--service
+
