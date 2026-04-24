@@ -37,10 +37,3 @@ spec:
     targetPort: 8002
   selector:
     app: auth-service
-
-
-
-
-
-
-

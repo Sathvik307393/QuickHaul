@@ -37,10 +37,3 @@ spec:
     targetPort: 8003
   selector:
     app: booking-service
-
-
-
-
-
-
-

@@ -37,10 +37,3 @@ spec:
     targetPort: 8004
   selector:
     app: notification-service
-
-
-
-
-
-
-

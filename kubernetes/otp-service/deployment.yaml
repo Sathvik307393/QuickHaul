@@ -37,10 +37,3 @@ spec:
     targetPort: 8005
   selector:
     app: otp-service
-
-
-
-
-
-
-

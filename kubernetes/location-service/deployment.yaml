@@ -37,10 +37,3 @@ spec:
     targetPort: 8001
   selector:
     app: location-service
-
-
-
-
-
-
-
