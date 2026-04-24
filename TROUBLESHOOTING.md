@@ -113,3 +113,16 @@ This guide provides solutions to common issues you might encounter during the Ku
 *   **Get everything**: `kubectl get all -n quick-haul`
 *   **Describe a failing pod**: `kubectl describe pod <pod-name> -n quick-haul`
 *   **Execute into a pod**: `kubectl exec -it <pod-name> -n quick-haul -- /bin/bash`
+
+---
+
+## ?? 10. NodePort Service: "Endpoints: <none>"
+**Problem:** kubectl get endpoints envoy-gateway-nodeport shows <none>. HAProxy gives a 503 error.
+*   **Reason:** The Service selector in your YAML does not match the labels on the Envoy pods created by the controller.
+*   **Solution:**
+    1. Find the labels on the proxy pods:
+       `ash
+       kubectl get pods -n envoy-gateway-system --show-labels
+       `
+    2. Update your Service manifest to use the correct labels (e.g., gateway.envoyproxy.io/owning-gateway-name: quickhaul-gateway).
+    3. Re-apply the manifest.
