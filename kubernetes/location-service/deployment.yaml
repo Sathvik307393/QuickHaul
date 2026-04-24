@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: location-service
-        image: sathvik2003/quickhaul-location:v2`n        command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "8001"]
+        image: sathvik2003/quickhaul-location:v2
+        command: ["uvicorn", "services.location_service.app:app", "–-host", "0.0.0.0", "–-port", "8001"]
         ports:
         - containerPort: 8001
         envFrom:
@@ -36,6 +37,7 @@ spec:
     targetPort: 8001
   selector:
     app: location-service
+
 
 
 
