@@ -107,3 +107,4 @@ To encrypt your `secrets.yaml` for safe Git storage:
 
 ## 🔍 Troubleshooting
 Refer to [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for detailed solutions to common errors.
+
