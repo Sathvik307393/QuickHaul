@@ -22,7 +22,7 @@ spec:
   type: NodePort
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 10080
     nodePort: 30080
   selector:
     gateway.envoyproxy.io/owning-gateway-namespace: quick-haul
@@ -95,3 +95,4 @@ spec:
     backendRefs:
     - name: frontend
       port: 80
+

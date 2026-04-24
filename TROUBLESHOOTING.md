@@ -134,3 +134,10 @@ This guide provides solutions to common issues you might encounter during the Ku
 *   **Reason:** In Kubernetes, a Service can only connect to Pods that are in the **same namespace**. If your Envoy pods are in envoy-gateway-system but your Service is in quick-haul, they will never connect.
 *   **Solution:** Move the Service manifest to the same namespace as the pods (e.g., set 
 amespace: envoy-gateway-system in your NodePort service manifest).
+
+---
+
+## ??? 12. Envoy: "targetPort: 10080"
+**Problem:** Connection Refused on port 80 inside the pod.
+*   **Reason:** By default, the Envoy Proxy container created by Envoy Gateway listens on port 10080 for HTTP traffic, not port 80.
+*   **Solution:** Update your Service manifest to use 	argetPort: 10080.
