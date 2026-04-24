@@ -126,3 +126,11 @@ This guide provides solutions to common issues you might encounter during the Ku
        `
     2. Update your Service manifest to use the correct labels (e.g., gateway.envoyproxy.io/owning-gateway-name: quickhaul-gateway).
     3. Re-apply the manifest.
+
+---
+
+## ??? 11. Cross-Namespace Service Selection
+**Problem:** A Service has the correct labels but still shows Endpoints: <none>.
+*   **Reason:** In Kubernetes, a Service can only connect to Pods that are in the **same namespace**. If your Envoy pods are in envoy-gateway-system but your Service is in quick-haul, they will never connect.
+*   **Solution:** Move the Service manifest to the same namespace as the pods (e.g., set 
+amespace: envoy-gateway-system in your NodePort service manifest).
