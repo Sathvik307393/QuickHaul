@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: booking--service
-  namespace: quick--haul
+  name: booking-service
+  namespace: quick-haul
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: booking--service
+      app: booking-service
   template:
     metadata:
       labels:
-        app: booking--service
+        app: booking-service
     spec:
       containers:
-      -- name: booking--service
-        image: sathvik2003/quickhaul--booking:v2
-        command: ["uvicorn", "services.booking_service.app:app", "---host", "0.0.0.0", "---port", "8003"]
+      - name: booking-service
+        image: sathvik2003/quickhaul-booking:v2
+        command: ["uvicorn", "services.booking_service.app:app", "--host", "0.0.0.0", "--port", "8003"]
         resources:
           requests:
             cpu: "100m"
@@ -25,23 +25,22 @@ spec:
             cpu: "200m"
             memory: "256Mi"
         ports:
-        -- containerPort: 8003
+        - containerPort: 8003
         envFrom:
-        -- configMapRef:
-            name: quick--haul--config
-        -- secretRef:
-            name: quick--haul--secrets
-------
+        - configMapRef:
+            name: quick-haul-config
+        - secretRef:
+            name: quick-haul-secrets
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: booking--service
-  namespace: quick--haul
+  name: booking-service
+  namespace: quick-haul
 spec:
   type: ClusterIP
   ports:
-  -- port: 8003
+  - port: 8003
     targetPort: 8003
   selector:
-    app: booking--service
-
+    app: booking-service

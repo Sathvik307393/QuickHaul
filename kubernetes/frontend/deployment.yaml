@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: quick--haul
+  namespace: quick-haul
 spec:
   replicas: 2
   selector:
@@ -14,8 +14,8 @@ spec:
         app: frontend
     spec:
       containers:
-      -- name: frontend
-        image: sathvik2003/quickhaul--frontend:v3
+      - name: frontend
+        image: sathvik2003/quickhaul-frontend:v3
 
         resources:
           requests:
@@ -25,23 +25,22 @@ spec:
             cpu: "100m"
             memory: "128Mi"
         ports:
-        -- containerPort: 80
+        - containerPort: 80
         envFrom:
-        -- configMapRef:
-            name: quick--haul--config
-        -- secretRef:
-            name: quick--haul--secrets
-------
+        - configMapRef:
+            name: quick-haul-config
+        - secretRef:
+            name: quick-haul-secrets
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-  namespace: quick--haul
+  namespace: quick-haul
 spec:
   type: ClusterIP
   ports:
-  -- port: 80
+  - port: 80
     targetPort: 80
   selector:
     app: frontend
-

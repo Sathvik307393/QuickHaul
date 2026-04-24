@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: location--service
-  namespace: quick--haul
+  name: location-service
+  namespace: quick-haul
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: location--service
+      app: location-service
   template:
     metadata:
       labels:
-        app: location--service
+        app: location-service
     spec:
       containers:
-      -- name: location--service
-        image: sathvik2003/quickhaul--location:v2
-        command: ["uvicorn", "services.location_service.app:app", "---host", "0.0.0.0", "---port", "8001"]
+      - name: location-service
+        image: sathvik2003/quickhaul-location:v2
+        command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "8001"]
         resources:
           requests:
             cpu: "100m"
@@ -25,23 +25,22 @@ spec:
             cpu: "200m"
             memory: "256Mi"
         ports:
-        -- containerPort: 8001
+        - containerPort: 8001
         envFrom:
-        -- configMapRef:
-            name: quick--haul--config
-        -- secretRef:
-            name: quick--haul--secrets
-------
+        - configMapRef:
+            name: quick-haul-config
+        - secretRef:
+            name: quick-haul-secrets
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: location--service
-  namespace: quick--haul
+  name: location-service
+  namespace: quick-haul
 spec:
   type: ClusterIP
   ports:
-  -- port: 8001
+  - port: 8001
     targetPort: 8001
   selector:
-    app: location--service
-
+    app: location-service
