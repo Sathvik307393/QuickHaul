@@ -31,16 +31,3 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: notification-service
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8004
-    targetPort: 8004
-  selector:
-    app: notification-service

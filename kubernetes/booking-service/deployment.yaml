@@ -31,16 +31,3 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: booking-service
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8003
-    targetPort: 8003
-  selector:
-    app: booking-service

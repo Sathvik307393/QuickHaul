@@ -16,7 +16,6 @@ spec:
       containers:
       - name: frontend
         image: sathvik2003/quickhaul-frontend:v3
-
         resources:
           requests:
             cpu: "50m"
@@ -31,16 +30,3 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: frontend
