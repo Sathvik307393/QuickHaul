@@ -64,6 +64,16 @@ spec:
     - path:
         type: PathPrefix
         value: /api/booking
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: booking-service
+      port: 8003
+  - matches:
     - path:
         type: PathPrefix
         value: /api/bookings
@@ -90,6 +100,16 @@ spec:
     - path:
         type: PathPrefix
         value: /api/location
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: location-service
+      port: 8001
+  - matches:
     - path:
         type: PathPrefix
         value: /api/locations
