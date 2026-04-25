@@ -11,7 +11,7 @@ global:
     location: "sathvik2003/quickhaul-location:v3"
     notification: "sathvik2003/quickhaul-notification:v2"
     otp: "sathvik2003/quickhaul-otp:v2"
-    frontend: "sathvik2003/quickhaul-frontend:v5"
+    frontend: "sathvik2003/quickhaul-frontend:v6"
     mongodb: "mongo:latest"
     redis: "redis:latest"
 
