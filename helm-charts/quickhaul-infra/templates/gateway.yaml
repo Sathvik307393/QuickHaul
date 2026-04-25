@@ -159,6 +159,3 @@ spec:
     backendRefs:
     - name: frontend
       port: 80
-
-
-#
