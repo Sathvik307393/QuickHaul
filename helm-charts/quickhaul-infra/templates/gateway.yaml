@@ -64,6 +64,12 @@ spec:
     - path:
         type: PathPrefix
         value: /api/booking
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /bookings
     backendRefs:
     - name: booking-service
       port: 8003
