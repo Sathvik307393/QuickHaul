@@ -58,6 +58,9 @@ spec:
     - path:
         type: PathPrefix
         value: /api/booking
+    - path:
+        type: PathPrefix
+        value: /api/bookings
     backendRefs:
     - name: booking-service
       port: 8003
@@ -75,6 +78,9 @@ spec:
     - path:
         type: PathPrefix
         value: /api/location
+    - path:
+        type: PathPrefix
+        value: /api/locations
     backendRefs:
     - name: location-service
       port: 8001
