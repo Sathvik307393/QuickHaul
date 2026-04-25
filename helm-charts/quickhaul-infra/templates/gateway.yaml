@@ -63,7 +63,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/bookings
+        value: /api/booking
     filters:
     - type: URLRewrite
       urlRewrite:
@@ -86,7 +86,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/locations
+        value: /api/location
     filters:
     - type: URLRewrite
       urlRewrite:
