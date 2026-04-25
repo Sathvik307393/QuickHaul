@@ -8,10 +8,10 @@ global:
   images:
     auth: "sathvik2003/quickhaul-auth:v2"
     booking: "sathvik2003/quickhaul-booking:v3"
-    location: "sathvik2003/quickhaul-location:v3"
+    location: "sathvik2003/quickhaul-location:v4"
     notification: "sathvik2003/quickhaul-notification:v2"
     otp: "sathvik2003/quickhaul-otp:v2"
-    frontend: "sathvik2003/quickhaul-frontend:v7"
+    frontend: "sathvik2003/quickhaul-frontend:v8"
     mongodb: "mongo:latest"
     redis: "redis:latest"
 
