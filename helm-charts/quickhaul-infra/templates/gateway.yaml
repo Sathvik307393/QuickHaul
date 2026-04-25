@@ -63,13 +63,13 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/booking
+        value: /api/bookings
     filters:
     - type: URLRewrite
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefixMatch: /
+          replacePrefixMatch: /bookings
     backendRefs:
     - name: booking-service
       port: 8003
@@ -86,13 +86,13 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/location
+        value: /api/locations
     filters:
     - type: URLRewrite
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefixMatch: /
+          replacePrefixMatch: /locations
     backendRefs:
     - name: location-service
       port: 8001
