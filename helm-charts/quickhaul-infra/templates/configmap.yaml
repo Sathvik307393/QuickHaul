@@ -4,14 +4,14 @@ metadata:
   name: quick-haul-config
   namespace: quick-haul
 data:
-  MONGO_URI: "mongodb://mongodb.quick-haul.svc.cluster.local:27017"
-  REDIS_URL: "redis://redis.quick-haul.svc.cluster.local:6379/0"
-  AUTH_SERVICE_URL: "http://auth-service.quick-haul.svc.cluster.local:8002"
-  BOOKING_SERVICE_URL: "http://booking-service.quick-haul.svc.cluster.local:8003"
-  LOCATION_SERVICE_URL: "http://location-service.quick-haul.svc.cluster.local:8001"
-  NOTIFICATION_SERVICE_URL: "http://notification-service.quick-haul.svc.cluster.local:8004"
-  OTP_SERVICE_URL: "http://otp-service.quick-haul.svc.cluster.local:8005"
-  FRONTEND_URL: "http://frontend.quick-haul.svc.cluster.local"
+  MONGO_URI: "mongodb://mongodb:27017"
+  REDIS_URL: "redis://redis:6379/0"
+  AUTH_SERVICE_URL: "http://auth-service:8002"
+  BOOKING_SERVICE_URL: "http://booking-service:8003"
+  LOCATION_SERVICE_URL: "http://location-service:8001"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8004"
+  OTP_SERVICE_URL: "http://otp-service:8005"
+  FRONTEND_URL: "http://frontend"
   # SMTP Settings
   SMTP_ENABLED: "true"
   SMTP_HOST: "smtp.gmail.com"

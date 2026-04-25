@@ -3,14 +3,14 @@ global:
   replicaCount: 2
   nodePort: 30080
   nfsServer: "172.31.31.186"
-  nfsPath: "/mnt/nfs_share"
+  nfsPath: "/mnt/nfs/mongodb"
   
   images:
     auth: "sathvik2003/quickhaul-auth:v2"
-    booking: "sathvik2003/quickhaul-booking:v1"
-    location: "sathvik2003/quickhaul-location:v1"
-    notification: "sathvik2003/quickhaul-notification:v1"
-    otp: "sathvik2003/quickhaul-otp:v1"
+    booking: "sathvik2003/quickhaul-booking:v2"
+    location: "sathvik2003/quickhaul-location:v2"
+    notification: "sathvik2003/quickhaul-notification:v2"
+    otp: "sathvik2003/quickhaul-otp:v2"
     frontend: "sathvik2003/quickhaul-frontend:v3"
     mongodb: "mongo:latest"
     redis: "redis:latest"

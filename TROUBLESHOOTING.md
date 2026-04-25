@@ -158,11 +158,16 @@ amespace: envoy-gateway-system in your NodePort service manifest).
 
 ---
 
-## ?? 15. NFS Mount: "exit status 32"
-**Problem:** Pods stuck in ContainerCreating with error mount failed: exit status 32.
-*   **Reason:** The Worker Node is missing the 
-fs-common package and cannot "speak" the NFS protocol.
-*   **Solution:** Run sudo apt-get update && sudo apt-get install -y nfs-common on ALL worker nodes.
+## 🔗 15. NFS Mount: "exit status 32" / "No route to host"
+**Problem:** Pods stuck in ContainerCreating with error `mount failed: exit status 32` or `mount.nfs: No route to host`.
+*   **Reason 1:** The Worker Node is missing the `nfs-common` package.
+*   **Reason 2:** AWS Security Groups are blocking port 2049.
+*   **Reason 3:** The NFS Server IP in `nfs-pv.yaml` is incorrect or the instance is down.
+*   **Solution:**
+    1.  **Install client tools**: Run `sudo apt-get update && sudo apt-get install -y nfs-common` on ALL worker nodes.
+    2.  **Check Connectivity**: From the worker node, run `nc -zv <NFS_IP> 2049`.
+    3.  **Open Firewall**: In AWS, ensure the NFS Server Security Group allows Inbound TCP 2049 from the Worker Node Security Group.
+    4.  **Verify Export Path**: Ensure the path in `nfs-pv.yaml` matches exactly what is in `/etc/exports` on the server.
 
 ---
 
