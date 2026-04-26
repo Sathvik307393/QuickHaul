@@ -1,47 +1,69 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: booking-service
-  namespace: quick-haul
+  name: {{ include "booking-service.fullname" . }}
+  labels:
+    app: {{ include "booking-service.name" . }}
 spec:
-  replicas: {{ .Values.global.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: booking-service
+      app: {{ include "booking-service.name" . }}
   template:
     metadata:
       labels:
-        app: booking-service
+        app: {{ include "booking-service.name" . }}
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "booking-service.name" . }}
+              topologyKey: "kubernetes.io/hostname"
+      
+      initContainers:
+      - name: wait-for-mongodb
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup mongodb.{{ .Release.Namespace }}.svc.cluster.local; do echo waiting for mongodb; sleep 2; done"]
+
       containers:
-      - name: booking-service
-        image: {{ .Values.global.images.booking }}
-        command: ["uvicorn", "services.booking_service.app:app", "--host", "0.0.0.0", "--port", "8003"]
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["uvicorn", "services.booking_service.app:app", "--host", "0.0.0.0", "--port", "{{ .Values.service.port }}"]
+        
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.liveness.path }}
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.readiness.path }}
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: 10
+
         resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+          {{- toYaml .Values.resources | nindent 10 }}
+        
         ports:
-        - containerPort: 8003
+        - containerPort: {{ .Values.service.port }}
+        
         envFrom:
         - configMapRef:
-            name: quick-haul-config
+            name: {{ .Values.config.configMapName }}
         - secretRef:
-            name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: booking-service
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8003
-    targetPort: 8003
-  selector:
-    app: booking-service
-
+            name: {{ .Values.config.secretName }}
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]

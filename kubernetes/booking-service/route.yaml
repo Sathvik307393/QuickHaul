@@ -16,7 +16,7 @@ spec:
       urlRewrite:
         path:
           type: ReplacePrefixMatch
-          replacePrefixMatch: /bookings
+          replacePrefixMatch: /
     backendRefs:
     - name: booking-service
       port: 8003

@@ -13,10 +13,45 @@ spec:
       labels:
         app: auth-service
     spec:
+      # SAFE ANTI-AFFINITY: Try to spread pods, but don't fail if only 1 node exists
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - auth-service
+              topologyKey: "kubernetes.io/hostname"
+      
+      # SAFE INIT-CONTAINER: Wait for MongoDB DNS to be resolvable
+      initContainers:
+      - name: wait-for-mongodb
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup mongodb.quick-haul.svc.cluster.local; do echo waiting for mongodb; sleep 2; done"]
+
       containers:
       - name: auth-service
         image: sathvik2003/quickhaul-auth:v2
         command: ["uvicorn", "services.auth_service.main:app", "--host", "0.0.0.0", "--port", "8002"]
+        
+        # PROBES: Self-healing (Assumes app has a root or health endpoint)
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8002
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8002
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
         resources:
           requests:
             cpu: "100m"
@@ -31,3 +66,9 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
+        
+        # SAFE LIFECYCLE: Allow 5s for clean shutdown
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]

@@ -1,48 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: location-service
-  namespace: quick-haul
+  name: {{ include "location-service.fullname" . }}
+  labels:
+    app: {{ include "location-service.name" . }}
 spec:
-  replicas: {{ .Values.global.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: location-service
+      app: {{ include "location-service.name" . }}
   template:
     metadata:
       labels:
-        app: location-service
+        app: {{ include "location-service.name" . }}
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "location-service.name" . }}
+              topologyKey: "kubernetes.io/hostname"
+      
+      initContainers:
+      - name: wait-for-mongodb
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup mongodb.{{ .Release.Namespace }}.svc.cluster.local; do echo waiting for mongodb; sleep 2; done"]
+
       containers:
-      - name: location-service
-        image: {{ .Values.global.images.location }}
-        command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "8001"]
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "{{ .Values.service.port }}"]
         ports:
-        - containerPort: 8001
+        - containerPort: {{ .Values.service.port }}
         envFrom:
         - configMapRef:
-            name: quick-haul-config
+            name: {{ .Values.config.configMapName }}
         - secretRef:
-            name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: location-service
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8001
-    targetPort: 8001
-  selector:
-    app: location-service
-
-
+            name: {{ .Values.config.secretName }}

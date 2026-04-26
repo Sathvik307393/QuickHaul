@@ -1,0 +1,30 @@
+replicaCount: 2
+
+image:
+  repository: sathvik2003/quickhaul-booking
+  tag: v2
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8003
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+probes:
+  liveness:
+    path: /
+    initialDelaySeconds: 30
+  readiness:
+    path: /
+    initialDelaySeconds: 10
+
+config:
+  configMapName: quick-haul-config
+  secretName: quick-haul-secrets

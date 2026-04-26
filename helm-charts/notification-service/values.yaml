@@ -1,0 +1,16 @@
+replicaCount: 2
+image:
+  repository: sathvik2003/quickhaul-notification
+  tag: v2
+service:
+  port: 8004
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+config:
+  configMapName: quick-haul-config
+  secretName: quick-haul-secrets

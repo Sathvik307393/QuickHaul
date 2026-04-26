@@ -1,47 +1,63 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend
-  namespace: quick-haul
+  name: {{ include "frontend.fullname" . }}
+  labels:
+    app: {{ include "frontend.name" . }}
 spec:
-  replicas: {{ .Values.global.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: frontend
+      app: {{ include "frontend.name" . }}
   template:
     metadata:
       labels:
-        app: frontend
+        app: {{ include "frontend.name" . }}
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "frontend.name" . }}
+              topologyKey: "kubernetes.io/hostname"
+
       containers:
-      - name: frontend
-        image: {{ .Values.global.images.frontend }}
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.liveness.path }}
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.readiness.path }}
+            port: {{ .Values.service.port }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: 10
 
         resources:
-          requests:
-            cpu: "50m"
-            memory: "64Mi"
-          limits:
-            cpu: "100m"
-            memory: "128Mi"
+          {{- toYaml .Values.resources | nindent 10 }}
+        
         ports:
-        - containerPort: 80
+        - containerPort: {{ .Values.service.port }}
+        
         envFrom:
         - configMapRef:
-            name: quick-haul-config
+            name: {{ .Values.config.configMapName }}
         - secretRef:
-            name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-    targetPort: 80
-  selector:
-    app: frontend
-
+            name: {{ .Values.config.secretName }}
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]

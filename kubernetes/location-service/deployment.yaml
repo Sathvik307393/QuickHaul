@@ -13,10 +13,42 @@ spec:
       labels:
         app: location-service
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - location-service
+              topologyKey: "kubernetes.io/hostname"
+      
+      initContainers:
+      - name: wait-for-mongodb
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup mongodb.quick-haul.svc.cluster.local; do echo waiting for mongodb; sleep 2; done"]
+
       containers:
       - name: location-service
         image: sathvik2003/quickhaul-location:v2
         command: ["uvicorn", "services.location_service.app:app", "--host", "0.0.0.0", "--port", "8001"]
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
         resources:
           requests:
             cpu: "100m"
@@ -31,3 +63,8 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]

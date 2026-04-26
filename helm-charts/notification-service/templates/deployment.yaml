@@ -1,48 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notification-service
-  namespace: quick-haul
+  name: {{ include "notification-service.fullname" . }}
+  labels:
+    app: {{ include "notification-service.name" . }}
 spec:
-  replicas: {{ .Values.global.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: notification-service
+      app: {{ include "notification-service.name" . }}
   template:
     metadata:
       labels:
-        app: notification-service
+        app: {{ include "notification-service.name" . }}
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "notification-service.name" . }}
+              topologyKey: "kubernetes.io/hostname"
+      
+      initContainers:
+      - name: wait-for-mongodb
+        image: busybox:1.28
+        command: ['sh', '-c', "until nslookup mongodb.{{ .Release.Namespace }}.svc.cluster.local; do echo waiting for mongodb; sleep 2; done"]
+
       containers:
-      - name: notification-service
-        image: {{ .Values.global.images.notification }}
-        command: ["uvicorn", "services.notification_service.app:app", "--host", "0.0.0.0", "--port", "8004"]
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["uvicorn", "services.notification_service.app:app", "--host", "0.0.0.0", "--port", "{{ .Values.service.port }}"]
         ports:
-        - containerPort: 8004
+        - containerPort: {{ .Values.service.port }}
         envFrom:
         - configMapRef:
-            name: quick-haul-config
+            name: {{ .Values.config.configMapName }}
         - secretRef:
-            name: quick-haul-secrets
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: notification-service
-  namespace: quick-haul
-spec:
-  type: ClusterIP
-  ports:
-  - port: 8004
-    targetPort: 8004
-  selector:
-    app: notification-service
-
-
+            name: {{ .Values.config.secretName }}

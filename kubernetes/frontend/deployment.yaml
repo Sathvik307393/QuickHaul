@@ -13,9 +13,38 @@ spec:
       labels:
         app: frontend
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - frontend
+              topologyKey: "kubernetes.io/hostname"
+      
+      # Frontend doesn't need wait-for-mongodb as it talks to APIs, not DB
+      
       containers:
       - name: frontend
         image: sathvik2003/quickhaul-frontend:v3
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
         resources:
           requests:
             cpu: "50m"
@@ -30,3 +59,8 @@ spec:
             name: quick-haul-config
         - secretRef:
             name: quick-haul-secrets
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
